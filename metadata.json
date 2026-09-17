@@ -1,0 +1,6 @@
+{
+  "name": "Treino & Saúde",
+  "description": "Aplicativo de registro de treino, carga interna (Foster), ACWR, volume muscular e métricas de saúde.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
