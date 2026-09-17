@@ -20,7 +20,8 @@ export const CONFIG_PADRAO: ConfigApp = {
   somAtivo: true,
   vibrarAtivo: true,
   volumeSom: 0.6,
-  avisoFaltando: 10
+  avisoFaltando: 10,
+  temaEscuro: true
 };
 
 export function getLocal<T>(key: string, defaultValue: T): T {

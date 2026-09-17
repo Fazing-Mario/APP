@@ -91,13 +91,13 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-3 border-b border-stone-200">
-          <h2 className="text-xl font-serif font-bold text-stone-900">Registrar Série</h2>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-4 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#1A231E] border border-stone-200 dark:border-[#2D3D34] w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-[#2D3D34]">
+          <h2 className="text-xl font-serif font-bold text-stone-900 dark:text-white">Registrar Série</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 cursor-pointer"
+            className="p-1 rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-[#232E27] cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -106,42 +106,42 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
         <div className="space-y-4 pt-4">
           {/* Data */}
           <div>
-            <label className="block text-xs font-semibold text-stone-600 mb-1">Data da Sessão</label>
+            <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">Data da Sessão</label>
             <input
               type="date"
               value={data}
               onChange={(e) => setData(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 text-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
             />
           </div>
 
           {/* Exercício */}
           <div>
-            <label className="block text-xs font-semibold text-stone-600 mb-1">Exercício</label>
+            <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">Exercício</label>
             <select
               value={exercicioNome}
               onChange={(e) => setExercicioNome(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 text-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
             >
               {exercicios.map((ex) => (
-                <option key={ex.id} value={ex.nome}>
+                <option key={ex.id} value={ex.nome} className="bg-white dark:bg-[#1A231E]">
                   {ex.nome} ({ex.grupo})
                 </option>
               ))}
             </select>
             {dicaUltima && (
-              <p className="text-[11px] text-emerald-800 font-medium mt-1">{dicaUltima}</p>
+              <p className="text-[11px] text-emerald-800 dark:text-emerald-400 font-medium mt-1">{dicaUltima}</p>
             )}
           </div>
 
           {/* Aquecimento Toggle */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-200">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-[#151D18] border border-stone-200 dark:border-[#2D3D34]">
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200">
                 <Flame className="w-3.5 h-3.5 text-amber-600" />
                 <span>Série de Aquecimento</span>
               </div>
-              <p className="text-[11px] text-stone-500 mt-0.5">
+              <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
                 Não entra no volume total nem no cálculo do ACWR
               </p>
             </div>
@@ -152,24 +152,24 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
                 onChange={(e) => setAquecimento(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-10 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+              <div className="w-10 h-6 bg-stone-300 dark:bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
             </label>
           </div>
 
           {/* Carga, Reps, Série Num */}
           <div className="grid grid-cols-3 gap-2.5">
             <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1">Série nº</label>
+              <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">Série nº</label>
               <input
                 type="number"
                 min="1"
                 value={serieNum}
                 onChange={(e) => setSerieNum(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full px-3 py-2 rounded-lg border border-stone-300 text-stone-800 text-sm font-semibold text-center"
+                className="w-full px-3 py-2 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-sm font-semibold text-center"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1">Carga (kg)</label>
+              <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">Carga (kg)</label>
               <input
                 type="number"
                 step="0.5"
@@ -177,18 +177,18 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
                 placeholder="0"
                 value={carga}
                 onChange={(e) => setCarga(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-stone-300 text-stone-800 text-sm font-semibold text-center"
+                className="w-full px-3 py-2 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-sm font-semibold text-center"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1">Repetições</label>
+              <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">Repetições</label>
               <input
                 type="number"
                 min="1"
                 placeholder="0"
                 value={reps}
                 onChange={(e) => setReps(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-stone-300 text-stone-800 text-sm font-semibold text-center"
+                className="w-full px-3 py-2 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-sm font-semibold text-center"
               />
             </div>
           </div>
@@ -196,13 +196,13 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
           {/* RPE / PSE, RIR, Dor */}
           <div className="grid grid-cols-3 gap-2.5">
             <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1">
+              <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">
                 PSE (0-10)
               </label>
               <select
                 value={pse}
                 onChange={(e) => setPse(e.target.value)}
-                className="w-full px-2 py-2 rounded-lg border border-stone-300 text-stone-800 text-xs font-medium"
+                className="w-full px-2 py-2 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-xs font-medium"
               >
                 <option value="">–</option>
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => (
@@ -213,13 +213,13 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1">
+              <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">
                 RIR (Reserva)
               </label>
               <select
                 value={rir}
                 onChange={(e) => setRir(e.target.value)}
-                className="w-full px-2 py-2 rounded-lg border border-stone-300 text-stone-800 text-xs font-medium"
+                className="w-full px-2 py-2 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-xs font-medium"
               >
                 <option value="">–</option>
                 {[0, 1, 2, 3, 4, 5].map((v) => (
@@ -230,13 +230,13 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1">
+              <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">
                 Dor (VAS 0-10)
               </label>
               <select
                 value={vas}
                 onChange={(e) => setVas(e.target.value)}
-                className="w-full px-2 py-2 rounded-lg border border-stone-300 text-stone-800 text-xs font-medium"
+                className="w-full px-2 py-2 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-xs font-medium"
               >
                 <option value="">0 (Sem dor)</option>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => (
@@ -250,13 +250,13 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
 
           {/* Observações */}
           <div>
-            <label className="block text-xs font-semibold text-stone-600 mb-1">Observações</label>
+            <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300 mb-1">Observações</label>
             <input
               type="text"
               placeholder="Ex: pegada aberta, velocidade, etc."
               value={obs}
               onChange={(e) => setObs(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-lg border border-stone-300 text-stone-800 text-sm"
+              className="w-full px-3.5 py-2 rounded-lg border border-stone-300 dark:border-[#2D3D34] bg-white dark:bg-[#151D18] text-stone-800 dark:text-white text-sm"
             />
           </div>
 
@@ -264,14 +264,14 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
           <div className="pt-2 flex flex-col gap-2">
             <button
               onClick={() => handleSubmit(true)}
-              className="w-full py-3 px-4 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm shadow-md transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 rounded-xl bg-emerald-800 dark:bg-emerald-700 hover:bg-emerald-900 dark:hover:bg-emerald-600 text-white font-bold text-sm shadow-md transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Salvar e Iniciar Descanso</span>
             </button>
 
             <button
               onClick={() => handleSubmit(false)}
-              className="w-full py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold text-sm transition-all active:scale-98 cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-stone-100 dark:bg-[#26352D] hover:bg-stone-200 dark:hover:bg-[#304238] text-stone-800 dark:text-stone-200 font-semibold text-sm transition-all active:scale-98 cursor-pointer"
             >
               Salvar Série Apenas
             </button>

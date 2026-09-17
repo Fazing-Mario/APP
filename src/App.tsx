@@ -4,10 +4,12 @@ import {
   TrendingUp,
   Scale,
   Moon,
+  Sun,
   Database,
   Plus,
   Sparkles,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Smartphone
 } from 'lucide-react';
 import {
   Exercicio,
@@ -35,6 +37,7 @@ import { DataSyncView } from './components/DataSyncView';
 import { NewSeriesModal } from './components/NewSeriesModal';
 import { TqrModal } from './components/TqrModal';
 import { TimerSettingsModal } from './components/TimerSettingsModal';
+import { MobileAccessModal } from './components/MobileAccessModal';
 import { getStoredAccessToken, appendSingleSeries } from './services/googleSheets';
 
 export default function App() {
@@ -55,6 +58,7 @@ export default function App() {
   const [modalSerieAberta, setModalSerieAberta] = useState<boolean>(false);
   const [modalTqrAberta, setModalTqrAberta] = useState<boolean>(false);
   const [modalTimerAberta, setModalTimerAberta] = useState<boolean>(false);
+  const [modalMobileAberta, setModalMobileAberta] = useState<boolean>(false);
 
   // Trigger para iniciar o timer automaticamente ao salvar série
   const [timerTrigger, setTimerTrigger] = useState<number>(0);
@@ -76,6 +80,21 @@ export default function App() {
   useEffect(() => {
     recarregarTodosDados();
   }, []);
+
+  // Sincronizar tema escuro com o elemento <html>
+  useEffect(() => {
+    const isDark = config.temaEscuro !== false;
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [config.temaEscuro]);
+
+  const handleToggleTema = () => {
+    const novoTema = !config.temaEscuro;
+    handleAtualizarConfig({ temaEscuro: novoTema });
+  };
 
   // Handlers para Séries
   const handleSalvarSerie = (novaSerie: Omit<SerieTreino, 'id'>, iniciarTimer: boolean) => {
@@ -225,29 +244,57 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] text-[#1F2A24] font-sans pb-24 sm:pb-28">
+    <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#121815] text-[#1F2A24] dark:text-[#EAF2EC] font-sans pb-24 sm:pb-28 transition-colors duration-200">
       {/* Topo / Header */}
-      <header className="px-4 sm:px-6 pt-5 pb-3 max-w-3xl mx-auto flex items-center justify-between">
+      <header className="px-4 sm:px-6 pt-5 pb-3 max-w-3xl mx-auto flex items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#2A4B39] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#2A4B39] dark:text-emerald-400 tracking-tight">
               Treino &amp; Saúde
             </h1>
-            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-              <Sparkles className="w-3 h-3" /> Poco X5 Ready
-            </span>
+            <button
+              onClick={() => setModalMobileAberta(true)}
+              className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 hover:scale-105 transition-all cursor-pointer"
+              title="Abrir instruções de instalação no celular"
+            >
+              <Smartphone className="w-3 h-3" />
+              <span>Poco X5</span>
+            </button>
           </div>
-          <p className="text-xs text-stone-500 capitalize mt-0.5">{hojeTexto}</p>
+          <p className="text-xs text-stone-500 dark:text-stone-400 capitalize mt-0.5">{hojeTexto}</p>
         </div>
 
-        <button
-          onClick={() => setTab('dados')}
-          className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 transition-all flex items-center gap-1.5 cursor-pointer"
-          title="Configurações e Sincronização Google Sheets"
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-800" />
-          <span>{config.googleSpreadsheetId ? 'Sheets Conectado' : 'Google Sheets'}</span>
-        </button>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Botão de Tema Escuro / Claro */}
+          <button
+            onClick={handleToggleTema}
+            className="p-2 rounded-xl bg-stone-100 dark:bg-[#232E27] text-stone-600 dark:text-amber-300 hover:bg-stone-200 dark:hover:bg-[#2D3D34] transition-all cursor-pointer border border-stone-200 dark:border-[#2D3D34]"
+            title={config.temaEscuro ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
+            {config.temaEscuro ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
+          {/* Botão de Acesso Mobile (Poco X5 / PWA) */}
+          <button
+            onClick={() => setModalMobileAberta(true)}
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-stone-100 dark:bg-[#232E27] hover:bg-stone-200 dark:hover:bg-[#2D3D34] text-stone-700 dark:text-stone-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 dark:border-[#2D3D34]"
+            title="Acessar e instalar no Poco X5"
+          >
+            <Smartphone className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+            <span className="hidden sm:inline">No Celular</span>
+          </button>
+
+          {/* Botão Google Sheets */}
+          <button
+            onClick={() => setTab('dados')}
+            className="text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 transition-all flex items-center gap-1.5 cursor-pointer"
+            title="Configurações e Sincronização Google Sheets"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-400" />
+            <span className="hidden sm:inline">{config.googleSpreadsheetId ? 'Sheets Conectado' : 'Google Sheets'}</span>
+            <span className="sm:hidden">Sheets</span>
+          </button>
+        </div>
       </header>
 
       {/* Conteúdo Principal */}
@@ -320,6 +367,7 @@ export default function App() {
             onAddExercicio={handleAdicionarExercicio}
             onDeleteExercicio={handleExcluirExercicio}
             onReloadAll={recarregarTodosDados}
+            onOpenMobileAccess={() => setModalMobileAberta(true)}
           />
         )}
       </main>
@@ -327,7 +375,7 @@ export default function App() {
       {/* Botão Flutuante (FAB) de Adição Rápida */}
       <button
         onClick={() => setModalSerieAberta(true)}
-        className="fixed right-5 bottom-20 sm:bottom-22 h-13 px-5 rounded-full bg-[#2A4B39] hover:bg-emerald-900 text-white font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2 active:scale-95 transition-all z-40 cursor-pointer"
+        className="fixed right-5 bottom-20 sm:bottom-22 h-13 px-5 rounded-full bg-[#2A4B39] dark:bg-emerald-700 hover:bg-emerald-900 dark:hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2 active:scale-95 transition-all z-40 cursor-pointer"
         title="Adicionar Série"
       >
         <Plus className="w-5 h-5" />
@@ -335,11 +383,13 @@ export default function App() {
       </button>
 
       {/* Barra de Navegação Inferior (Estilo App Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200 py-2 px-3 flex items-center justify-around z-30 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#161F1A]/95 backdrop-blur-md border-t border-stone-200 dark:border-[#2D3D34] py-2 px-3 flex items-center justify-around z-30 shadow-lg">
         <button
           onClick={() => setTab('treino')}
           className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            tab === 'treino' ? 'text-[#2A4B39] font-bold' : 'text-stone-400 hover:text-stone-700'
+            tab === 'treino'
+              ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
+              : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
           }`}
         >
           <Dumbbell className="w-5 h-5" />
@@ -349,7 +399,9 @@ export default function App() {
         <button
           onClick={() => setTab('analise')}
           className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            tab === 'analise' ? 'text-[#2A4B39] font-bold' : 'text-stone-400 hover:text-stone-700'
+            tab === 'analise'
+              ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
+              : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
           }`}
         >
           <TrendingUp className="w-5 h-5" />
@@ -359,7 +411,9 @@ export default function App() {
         <button
           onClick={() => setTab('corpo')}
           className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            tab === 'corpo' ? 'text-[#2A4B39] font-bold' : 'text-stone-400 hover:text-stone-700'
+            tab === 'corpo'
+              ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
+              : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
           }`}
         >
           <Scale className="w-5 h-5" />
@@ -369,7 +423,9 @@ export default function App() {
         <button
           onClick={() => setTab('sono')}
           className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            tab === 'sono' ? 'text-[#2A4B39] font-bold' : 'text-stone-400 hover:text-stone-700'
+            tab === 'sono'
+              ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
+              : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
           }`}
         >
           <Moon className="w-5 h-5" />
@@ -379,7 +435,9 @@ export default function App() {
         <button
           onClick={() => setTab('dados')}
           className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            tab === 'dados' ? 'text-[#2A4B39] font-bold' : 'text-stone-400 hover:text-stone-700'
+            tab === 'dados'
+              ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
+              : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
           }`}
         >
           <Database className="w-5 h-5" />
@@ -407,6 +465,11 @@ export default function App() {
         onClose={() => setModalTimerAberta(false)}
         config={config}
         onSave={handleAtualizarConfig}
+      />
+
+      <MobileAccessModal
+        isOpen={modalMobileAberta}
+        onClose={() => setModalMobileAberta(false)}
       />
     </div>
   );

@@ -156,4 +156,5 @@ export interface ConfigApp {
   googleAutoSync?: boolean;
   googleLastSync?: string;
   googleClientId?: string;
+  temaEscuro?: boolean;
 }
