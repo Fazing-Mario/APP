@@ -9,7 +9,11 @@ import {
   Share2,
   Sparkles,
   ShieldCheck,
-  Layers
+  Download,
+  AlertTriangle,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -17,15 +21,20 @@ interface MobileAccessModalProps {
   isOpen: boolean;
   onClose: () => void;
   appUrl?: string;
+  canInstall?: boolean;
+  onTriggerInstall?: () => void;
 }
 
 export const MobileAccessModal: React.FC<MobileAccessModalProps> = ({
   isOpen,
   onClose,
-  appUrl
+  appUrl,
+  canInstall,
+  onTriggerInstall
 }) => {
   const [copiado, setCopiado] = useState(false);
   const [plataforma, setPlataforma] = useState<'android' | 'ios'>('android');
+  const [mostrarAjuda, setMostrarAjuda] = useState(false);
 
   // URL para abrir no celular: prefere a URL pública/compartilhada ou a URL atual da janela
   const urlFinal =
@@ -172,6 +181,27 @@ export const MobileAccessModal: React.FC<MobileAccessModalProps> = ({
               </button>
             </div>
 
+            {/* Botão de Instalação Direta (se o Chrome disparar beforeinstallprompt) */}
+            {canInstall && onTriggerInstall && (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-800 to-emerald-700 text-white flex items-center justify-between shadow-sm border border-emerald-600">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
+                    <Download className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-xs">Instalar Treino &amp; Saúde</div>
+                    <div className="text-[10px] text-emerald-100">Instalação direta com 1 clique no aparelho</div>
+                  </div>
+                </div>
+                <button
+                  onClick={onTriggerInstall}
+                  className="py-1.5 px-3 rounded-xl bg-white text-emerald-900 font-bold text-xs hover:bg-emerald-50 active:scale-95 transition-all shadow-xs cursor-pointer"
+                >
+                  Instalar Agora
+                </button>
+              </div>
+            )}
+
             {/* Passo a Passo Android (Poco X5 / MIUI) */}
             {plataforma === 'android' && (
               <div className="space-y-2.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-[#121614] border border-stone-200 dark:border-[#26352D]">
@@ -194,6 +224,37 @@ export const MobileAccessModal: React.FC<MobileAccessModalProps> = ({
                     Confirme o nome <strong>Treino &amp; Saúde</strong>. O ícone oficial do aplicativo aparecerá na grade de apps do seu celular.
                   </li>
                 </ol>
+
+                {/* Seção de Solução de Problemas no Poco X5 / Xiaomi */}
+                <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 text-[11px] space-y-2">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between font-bold cursor-pointer text-left"
+                    onClick={() => setMostrarAjuda(!mostrarAjuda)}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                      <span>Chrome não mostra a opção ou dá erro? (Poco/Xiaomi)</span>
+                    </div>
+                    {mostrarAjuda ? <ChevronUp className="w-4 h-4 shrink-0 ml-1" /> : <ChevronDown className="w-4 h-4 shrink-0 ml-1" />}
+                  </button>
+
+                  {mostrarAjuda && (
+                    <div className="space-y-2 pt-1.5 border-t border-amber-500/20 text-[10.5px] leading-relaxed">
+                      <p>
+                        <strong>1. Permissão da Xiaomi (MIUI/HyperOS):</strong> Por padrão de fábrica, o Poco X5 bloqueia criação de atalhos por navegadores. Para liberar:
+                        <br />
+                        No celular, vá em: <em>Configurações &gt; Apps &gt; Gerenciar Apps &gt; Chrome &gt; Outras Permissões &gt; toque em "Atalhos na tela inicial" e marque como <strong>Permitir</strong></em>.
+                      </p>
+                      <p>
+                        <strong>2. Abrir fora do editor:</strong> O Chrome desativa instalação quando a página está dentro de um frame embutido. Copie o link e abra direto no Chrome.
+                      </p>
+                      <p>
+                        <strong>3. Recarregue a página:</strong> Como acabamos de gerar os ícones PNG e o Service Worker offline, recarregue a página no Chrome para que ele leia as novas configurações.
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 <div className="mt-2 p-2.5 rounded-xl bg-emerald-100/60 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 text-[11px] flex items-start gap-2">
                   <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-700 dark:text-emerald-400" />

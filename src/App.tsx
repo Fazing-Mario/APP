@@ -9,7 +9,8 @@ import {
   Plus,
   Sparkles,
   FileSpreadsheet,
-  Smartphone
+  Smartphone,
+  Download
 } from 'lucide-react';
 import {
   Exercicio,
@@ -61,6 +62,30 @@ export default function App() {
   const [modalTqrAberta, setModalTqrAberta] = useState<boolean>(false);
   const [modalTimerAberta, setModalTimerAberta] = useState<boolean>(false);
   const [modalMobileAberta, setModalMobileAberta] = useState<boolean>(false);
+
+  // PWA Install Prompt Event do Chrome
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handlePrompt = (e: any) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handlePrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
+  }, []);
+
+  const handleTriggerInstall = async () => {
+    if (!installPrompt) {
+      setModalMobileAberta(true);
+      return;
+    }
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setInstallPrompt(null);
+    }
+  };
 
   // Trigger para iniciar o timer automaticamente ao salvar série
   const [timerTrigger, setTimerTrigger] = useState<number>(0);
@@ -280,6 +305,18 @@ export default function App() {
             <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300 animate-pulse" />
             <span className="font-bold">Coach IA</span>
           </button>
+
+          {/* Botão de Instalar App PWA (se disparado pelo navegador) */}
+          {installPrompt && (
+            <button
+              onClick={handleTriggerInstall}
+              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs animate-bounce"
+              title="Instalar App no dispositivo"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Instalar</span>
+            </button>
+          )}
 
           {/* Botão de Tema Escuro / Claro */}
           <button
@@ -560,6 +597,8 @@ export default function App() {
       <MobileAccessModal
         isOpen={modalMobileAberta}
         onClose={() => setModalMobileAberta(false)}
+        canInstall={!!installPrompt}
+        onTriggerInstall={handleTriggerInstall}
       />
     </div>
   );
