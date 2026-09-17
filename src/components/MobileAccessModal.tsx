@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Layers
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 
 interface MobileAccessModalProps {
   isOpen: boolean;
@@ -25,8 +26,6 @@ export const MobileAccessModal: React.FC<MobileAccessModalProps> = ({
 }) => {
   const [copiado, setCopiado] = useState(false);
   const [plataforma, setPlataforma] = useState<'android' | 'ios'>('android');
-
-  if (!isOpen) return null;
 
   // URL para abrir no celular: prefere a URL pública/compartilhada ou a URL atual da janela
   const urlFinal =
@@ -48,9 +47,25 @@ export const MobileAccessModal: React.FC<MobileAccessModalProps> = ({
   )}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white dark:bg-[#1A231E] rounded-3xl border border-stone-200 dark:border-[#2D3D34] shadow-2xl text-stone-900 dark:text-[#EAF2EC] overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Cabeçalho do Modal */}
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+        >
+          <motion.div
+            className="w-full max-w-lg bg-white dark:bg-[#1A231E] rounded-3xl border border-stone-200 dark:border-[#2D3D34] shadow-2xl text-stone-900 dark:text-[#EAF2EC] overflow-hidden flex flex-col max-h-[92vh]"
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Cabeçalho do Modal */}
         <div className="p-5 border-b border-stone-100 dark:border-[#2D3D34] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-400 flex items-center justify-center">
@@ -246,7 +261,9 @@ export const MobileAccessModal: React.FC<MobileAccessModalProps> = ({
             Entendido
           </button>
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, Calendar, Activity, Zap, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, Calendar, Activity, Zap, ShieldCheck, Sparkles, ChevronRight } from 'lucide-react';
 import { SerieTreino, RegistroTQR } from '../types';
 import { volumeSerie, serieEfetiva, isoHoje, fmtBR, classificaTQR } from '../utils/calculations';
 
@@ -9,6 +9,7 @@ interface WorkoutViewProps {
   onOpenNewSeries: () => void;
   onOpenTqr: () => void;
   onDeleteSeries: (id: string) => void;
+  onOpenCoach?: () => void;
 }
 
 export const WorkoutView: React.FC<WorkoutViewProps> = ({
@@ -16,7 +17,8 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({
   tqrList,
   onOpenNewSeries,
   onOpenTqr,
-  onDeleteSeries
+  onDeleteSeries,
+  onOpenCoach
 }) => {
   const hoje = isoHoje();
   const doDia = series.filter((s) => s.data === hoje);
@@ -95,6 +97,34 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Card de Acesso Rápido ao Coach IA para adaptações */}
+      {onOpenCoach && (
+        <div
+          onClick={onOpenCoach}
+          className="bg-gradient-to-r from-emerald-900/15 via-emerald-800/10 to-teal-900/15 dark:from-emerald-950/70 dark:via-[#1A2520] dark:to-teal-950/50 p-3.5 rounded-2xl border border-emerald-600/30 dark:border-emerald-700/40 flex items-center justify-between cursor-pointer hover:border-emerald-500 active:scale-[0.99] transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-700 text-white flex items-center justify-center shadow-xs">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300">
+                  Dúvida ou Adaptação no Treino?
+                </span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-200 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200 font-bold uppercase">
+                  IA
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-600 dark:text-stone-300 mt-0.5">
+                Peça análise de fadiga, substituição de exercício ou ajuste de volume em tempo real.
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-emerald-700 dark:text-emerald-400 group-hover:translate-x-0.5 transition-transform shrink-0 ml-2" />
+        </div>
+      )}
 
       {/* Lista de Exercícios e Séries de Hoje */}
       <div className="bg-white dark:bg-[#1A231E] rounded-2xl border border-stone-200 dark:border-[#2D3D34] shadow-xs p-4 sm:p-5">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Volume2, Smartphone, Clock } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ConfigApp } from '../types';
 import { destravarAudio, tocarFimDescanso, formatarTempo } from '../utils/audioTimer';
 
@@ -22,8 +23,6 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
   const [avisoFaltando, setAvisoFaltando] = useState<number>(config.avisoFaltando);
   const [descansoPadrao, setDescansoPadrao] = useState<number>(config.descansoPadrao);
 
-  if (!isOpen) return null;
-
   const testarAlarme = () => {
     destravarAudio();
     tocarFimDescanso(volumeSom);
@@ -41,9 +40,25 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#1A231E] border border-stone-200 dark:border-[#2D3D34] w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-[#2D3D34]">
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-4 backdrop-blur-xs"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+        >
+          <motion.div
+            className="bg-white dark:bg-[#1A231E] border border-stone-200 dark:border-[#2D3D34] w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+            initial={{ opacity: 0, y: 35, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 35, scale: 0.96 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-[#2D3D34]">
           <h2 className="text-xl font-serif font-bold text-stone-900 dark:text-white">Ajustes do Descanso</h2>
           <button
             onClick={onClose}
@@ -171,7 +186,9 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
             Salvar Configurações
           </button>
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

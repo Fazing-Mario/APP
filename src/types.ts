@@ -158,3 +158,12 @@ export interface ConfigApp {
   googleClientId?: string;
   temaEscuro?: boolean;
 }
+
+export interface MensagemIA {
+  id: string;
+  remetente: 'user' | 'assistant';
+  conteudo: string;
+  dataHora: number;
+  tipo?: 'geral' | 'adaptacao' | 'prontidao' | 'recuperacao';
+}
+

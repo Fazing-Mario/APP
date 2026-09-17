@@ -38,10 +38,12 @@ import { NewSeriesModal } from './components/NewSeriesModal';
 import { TqrModal } from './components/TqrModal';
 import { TimerSettingsModal } from './components/TimerSettingsModal';
 import { MobileAccessModal } from './components/MobileAccessModal';
+import { AiCoachView } from './components/AiCoachView';
+import { AnimatePresence, motion } from 'motion/react';
 import { getStoredAccessToken, appendSingleSeries } from './services/googleSheets';
 
 export default function App() {
-  const [tab, setTab] = useState<'treino' | 'analise' | 'corpo' | 'sono' | 'dados'>('treino');
+  const [tab, setTab] = useState<'treino' | 'coach' | 'analise' | 'corpo' | 'sono' | 'dados'>('treino');
 
   // Estado dos dados
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
@@ -265,6 +267,20 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Botão Coach IA */}
+          <button
+            onClick={() => setTab('coach')}
+            className={`text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border ${
+              tab === 'coach'
+                ? 'bg-emerald-800 dark:bg-emerald-600 text-white border-emerald-700 shadow-sm'
+                : 'bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-900 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40'
+            }`}
+            title="Abrir Coach IA & Fisiologia"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300 animate-pulse" />
+            <span className="font-bold">Coach IA</span>
+          </button>
+
           {/* Botão de Tema Escuro / Claro */}
           <button
             onClick={handleToggleTema}
@@ -297,79 +313,138 @@ export default function App() {
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
+      {/* Conteúdo Principal com Animações Suaves */}
       <main className="px-4 sm:px-6 max-w-3xl mx-auto space-y-4">
-        {/* Timer Card herói sempre no topo da aba Treino */}
-        {tab === 'treino' && (
-          <TimerCard
-            config={config}
-            onOpenSettings={() => setModalTimerAberta(true)}
-            externalTrigger={timerTrigger}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          {tab === 'treino' && (
+            <motion.div
+              key="tab-treino"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="space-y-4"
+            >
+              <TimerCard
+                config={config}
+                onOpenSettings={() => setModalTimerAberta(true)}
+                externalTrigger={timerTrigger}
+              />
+              <WorkoutView
+                series={series}
+                tqrList={tqrList}
+                onOpenNewSeries={() => setModalSerieAberta(true)}
+                onOpenTqr={() => setModalTqrAberta(true)}
+                onDeleteSeries={handleExcluirSerie}
+                onOpenCoach={() => setTab('coach')}
+              />
+            </motion.div>
+          )}
 
-        {tab === 'treino' && (
-          <WorkoutView
-            series={series}
-            tqrList={tqrList}
-            onOpenNewSeries={() => setModalSerieAberta(true)}
-            onOpenTqr={() => setModalTqrAberta(true)}
-            onDeleteSeries={handleExcluirSerie}
-          />
-        )}
+          {tab === 'coach' && (
+            <motion.div
+              key="tab-coach"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <AiCoachView
+                series={series}
+                tqrList={tqrList}
+                exercicios={exercicios}
+                config={config}
+                onOpenNewSeries={() => setModalSerieAberta(true)}
+                onOpenTqr={() => setModalTqrAberta(true)}
+              />
+            </motion.div>
+          )}
 
-        {tab === 'analise' && (
-          <AnalysisView
-            series={series}
-            tqrList={tqrList}
-            wearables={wearablesList}
-          />
-        )}
+          {tab === 'analise' && (
+            <motion.div
+              key="tab-analise"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <AnalysisView
+                series={series}
+                tqrList={tqrList}
+                wearables={wearablesList}
+              />
+            </motion.div>
+          )}
 
-        {tab === 'corpo' && (
-          <BodyView
-            altura={config.altura}
-            pesoList={pesoList}
-            medidasList={medidasList}
-            wearablesList={wearablesList}
-            onAddPeso={handleAdicionarPeso}
-            onDeletePeso={handleExcluirPeso}
-            onAddMedida={handleAdicionarMedida}
-            onDeleteMedida={handleExcluirMedida}
-            onAddWearable={handleAdicionarWearable}
-            onDeleteWearable={handleExcluirWearable}
-          />
-        )}
+          {tab === 'corpo' && (
+            <motion.div
+              key="tab-corpo"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <BodyView
+                altura={config.altura}
+                pesoList={pesoList}
+                medidasList={medidasList}
+                wearablesList={wearablesList}
+                onAddPeso={handleAdicionarPeso}
+                onDeletePeso={handleExcluirPeso}
+                onAddMedida={handleAdicionarMedida}
+                onDeleteMedida={handleExcluirMedida}
+                onAddWearable={handleAdicionarWearable}
+                onDeleteWearable={handleExcluirWearable}
+              />
+            </motion.div>
+          )}
 
-        {tab === 'sono' && (
-          <SleepView
-            psqiList={psqiList}
-            essList={essList}
-            onAddPSQI={handleAdicionarPSQI}
-            onDeletePSQI={handleExcluirPSQI}
-            onAddESS={handleAdicionarESS}
-            onDeleteESS={handleExcluirESS}
-          />
-        )}
+          {tab === 'sono' && (
+            <motion.div
+              key="tab-sono"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <SleepView
+                psqiList={psqiList}
+                essList={essList}
+                onAddPSQI={handleAdicionarPSQI}
+                onDeletePSQI={handleExcluirPSQI}
+                onAddESS={handleAdicionarESS}
+                onDeleteESS={handleExcluirESS}
+              />
+            </motion.div>
+          )}
 
-        {tab === 'dados' && (
-          <DataSyncView
-            config={config}
-            exercicios={exercicios}
-            series={series}
-            pesoList={pesoList}
-            medidasList={medidasList}
-            wearablesList={wearablesList}
-            psqiList={psqiList}
-            essList={essList}
-            tqrList={tqrList}
-            onUpdateConfig={handleAtualizarConfig}
-            onAddExercicio={handleAdicionarExercicio}
-            onDeleteExercicio={handleExcluirExercicio}
-            onReloadAll={recarregarTodosDados}
-            onOpenMobileAccess={() => setModalMobileAberta(true)}
-          />
-        )}
+          {tab === 'dados' && (
+            <motion.div
+              key="tab-dados"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <DataSyncView
+                config={config}
+                exercicios={exercicios}
+                series={series}
+                pesoList={pesoList}
+                medidasList={medidasList}
+                wearablesList={wearablesList}
+                psqiList={psqiList}
+                essList={essList}
+                tqrList={tqrList}
+                onUpdateConfig={handleAtualizarConfig}
+                onAddExercicio={handleAdicionarExercicio}
+                onDeleteExercicio={handleExcluirExercicio}
+                onReloadAll={recarregarTodosDados}
+                onOpenMobileAccess={() => setModalMobileAberta(true)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Botão Flutuante (FAB) de Adição Rápida */}
@@ -383,10 +458,10 @@ export default function App() {
       </button>
 
       {/* Barra de Navegação Inferior (Estilo App Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#161F1A]/95 backdrop-blur-md border-t border-stone-200 dark:border-[#2D3D34] py-2 px-3 flex items-center justify-around z-30 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#161F1A]/95 backdrop-blur-md border-t border-stone-200 dark:border-[#2D3D34] py-1.5 px-2 flex items-center justify-around z-30 shadow-lg">
         <button
           onClick={() => setTab('treino')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all cursor-pointer ${
             tab === 'treino'
               ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
               : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
@@ -397,8 +472,23 @@ export default function App() {
         </button>
 
         <button
+          onClick={() => setTab('coach')}
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all cursor-pointer relative ${
+            tab === 'coach'
+              ? 'text-emerald-800 dark:text-emerald-400 font-bold scale-105'
+              : 'text-stone-400 dark:text-stone-400 hover:text-emerald-700 dark:hover:text-emerald-300'
+          }`}
+        >
+          <div className="relative">
+            <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          </div>
+          <span className="text-[10px]">Coach IA</span>
+        </button>
+
+        <button
           onClick={() => setTab('analise')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all cursor-pointer ${
             tab === 'analise'
               ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
               : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
@@ -410,7 +500,7 @@ export default function App() {
 
         <button
           onClick={() => setTab('corpo')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all cursor-pointer ${
             tab === 'corpo'
               ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
               : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
@@ -422,7 +512,7 @@ export default function App() {
 
         <button
           onClick={() => setTab('sono')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all cursor-pointer ${
             tab === 'sono'
               ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
               : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
@@ -434,7 +524,7 @@ export default function App() {
 
         <button
           onClick={() => setTab('dados')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all cursor-pointer ${
             tab === 'dados'
               ? 'text-[#2A4B39] dark:text-emerald-400 font-bold'
               : 'text-stone-400 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'

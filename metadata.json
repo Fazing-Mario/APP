@@ -1,6 +1,6 @@
 {
   "name": "Treino & Saúde",
-  "description": "Aplicativo de registro de treino, carga interna (Foster), ACWR, volume muscular e métricas de saúde.",
+  "description": "Aplicativo de registro de treino, carga interna (Foster), ACWR, volume muscular, métricas de saúde e Coach IA com suporte a adaptações e fisiologia.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
