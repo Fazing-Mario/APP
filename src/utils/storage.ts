@@ -45,35 +45,63 @@ export function setLocal<T>(key: string, value: T): void {
 }
 
 export function inicializarStorage() {
-  const ex = getLocal<Exercicio[]>('exercicios', []);
-  if (ex.length === 0) {
-    setLocal('exercicios', SEED_EXERCICIOS);
-  }
+  const jaInicializado = getLocal<boolean>('initialized', false);
+  if (!jaInicializado) {
+    const ex = getLocal<Exercicio[]>('exercicios', []);
+    if (ex.length === 0) {
+      setLocal('exercicios', SEED_EXERCICIOS);
+    }
 
-  const series = getLocal<SerieTreino[]>('series', []);
-  if (series.length === 0) {
-    setLocal('series', SEED_SERIES);
-  }
+    const series = getLocal<SerieTreino[]>('series', []);
+    if (series.length === 0) {
+      setLocal('series', SEED_SERIES);
+    }
 
-  const peso = getLocal<RegistroPeso[]>('peso', []);
-  if (peso.length === 0) {
-    setLocal('peso', SEED_PESO);
-  }
+    const peso = getLocal<RegistroPeso[]>('peso', []);
+    if (peso.length === 0) {
+      setLocal('peso', SEED_PESO);
+    }
 
-  const wearables = getLocal<WearablesSemanal[]>('wearables', []);
-  if (wearables.length === 0) {
-    setLocal('wearables', SEED_WEARABLES);
-  }
+    const wearables = getLocal<WearablesSemanal[]>('wearables', []);
+    if (wearables.length === 0) {
+      setLocal('wearables', SEED_WEARABLES);
+    }
 
-  const tqr = getLocal<RegistroTQR[]>('tqr', []);
-  if (tqr.length === 0) {
-    setLocal('tqr', SEED_TQR);
+    const tqr = getLocal<RegistroTQR[]>('tqr', []);
+    if (tqr.length === 0) {
+      setLocal('tqr', SEED_TQR);
+    }
+
+    setLocal('initialized', true);
   }
 
   const cfg = getLocal<ConfigApp>('config', CONFIG_PADRAO);
   if (!cfg.descansoPadrao) {
     setLocal('config', CONFIG_PADRAO);
   }
+}
+
+export function limparDadosTeste(manterExercicios = true) {
+  setLocal('series', []);
+  setLocal('peso', []);
+  setLocal('medidas', []);
+  setLocal('wearables', []);
+  setLocal('psqi', []);
+  setLocal('ess', []);
+  setLocal('tqr', []);
+  if (!manterExercicios) {
+    setLocal('exercicios', []);
+  }
+  setLocal('initialized', true);
+}
+
+export function restaurarDadosExemplo() {
+  setLocal('exercicios', SEED_EXERCICIOS);
+  setLocal('series', SEED_SERIES);
+  setLocal('peso', SEED_PESO);
+  setLocal('wearables', SEED_WEARABLES);
+  setLocal('tqr', SEED_TQR);
+  setLocal('initialized', true);
 }
 
 export function exportarBackupCompleto(): string {

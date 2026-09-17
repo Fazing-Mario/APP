@@ -1,5 +1,6 @@
 import { SerieTreino, CargaDiaria, RegistroPeso, MedidasCorporais, RegistroPSQI, RegistroESS, WearablesSemanal } from '../types';
 import { calcIMC } from '../utils/calculations';
+import { getAccessToken, setAccessToken, googleSignIn } from './firebaseAuth';
 
 declare global {
   interface Window {
@@ -34,6 +35,24 @@ export function extractSpreadsheetId(input: string): string {
   return trimmed;
 }
 
+export async function resolveAccessToken(): Promise<string | null> {
+  // 1. Tenta pegar token em memória do Firebase Auth
+  const memToken = await getAccessToken();
+  if (memToken) return memToken;
+
+  // 2. Tenta pegar token armazenado na sessão
+  try {
+    const sessionToken = sessionStorage.getItem(STORAGE_KEY_TOKEN);
+    if (sessionToken) {
+      setAccessToken(sessionToken);
+      return sessionToken;
+    }
+  } catch {
+    // Ignore
+  }
+  return null;
+}
+
 export function getStoredAccessToken(): string | null {
   try {
     return sessionStorage.getItem(STORAGE_KEY_TOKEN);
@@ -43,6 +62,7 @@ export function getStoredAccessToken(): string | null {
 }
 
 export function setStoredAccessToken(token: string | null): void {
+  setAccessToken(token);
   try {
     if (token) {
       sessionStorage.setItem(STORAGE_KEY_TOKEN, token);
@@ -54,21 +74,34 @@ export function setStoredAccessToken(token: string | null): void {
   }
 }
 
-export function requestGoogleAccessToken(clientId: string): Promise<string> {
+export async function requestGoogleAccessToken(clientId?: string): Promise<string> {
+  // Preferência: Firebase Auth com Google OAuth Popup oficial
+  try {
+    const { accessToken } = await googleSignIn();
+    if (accessToken) {
+      setStoredAccessToken(accessToken);
+      return accessToken;
+    }
+  } catch (firebaseErr: any) {
+    console.warn('Firebase signInWithPopup fallback para GSI:', firebaseErr);
+    // Se o usuário cancelou o popup explicitamente, propaga o erro amigável
+    if (firebaseErr?.code === 'auth/popup-closed-by-user') {
+      throw new Error('Autenticação cancelada pelo usuário.');
+    }
+  }
+
+  // Fallback para Google Identity Services (GSI)
   return new Promise((resolve, reject) => {
     if (!window.google?.accounts?.oauth2) {
       reject(new Error('A biblioteca Google Identity Services ainda está carregando. Tente novamente em alguns segundos.'));
       return;
     }
 
-    if (!clientId) {
-      reject(new Error('Google Client ID não configurado.'));
-      return;
-    }
+    const effectiveId = clientId || '214510564913-h3nsieg77e35cn5at65apqhapbvg65uc.apps.googleusercontent.com';
 
     try {
       const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
+        client_id: effectiveId,
         scope: SCOPE,
         callback: (response) => {
           if (response.error) {

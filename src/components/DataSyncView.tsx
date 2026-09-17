@@ -35,7 +35,9 @@ import {
   gerarCSVSeries,
   gerarCSVCargaDiaria,
   baixarArquivo,
-  restaurarBackup
+  restaurarBackup,
+  limparDadosTeste,
+  restaurarDadosExemplo
 } from '../utils/storage';
 import { isoHoje, calcularCargaDiaria } from '../utils/calculations';
 import {
@@ -47,6 +49,7 @@ import {
   syncAllDataToSheets,
   extractSpreadsheetId
 } from '../services/googleSheets';
+import { initAuth, googleSignIn, logout, User } from '../services/firebaseAuth';
 
 interface DataSyncViewProps {
   config: ConfigApp;
@@ -91,8 +94,9 @@ export const DataSyncView: React.FC<DataSyncViewProps> = ({
   const [msgSucesso, setMsgSucesso] = useState<string>('');
   const [msgErro, setMsgErro] = useState<string>('');
 
-  // Estados do Google Sheets
+  // Estados do Google Sheets e Usuário
   const [temToken, setTemToken] = useState<boolean>(false);
+  const [usuarioGoogle, setUsuarioGoogle] = useState<User | null>(null);
   const [inputPlanilhaId, setInputPlanilhaId] = useState<string>(config.googleSpreadsheetId || '');
   const [carregandoAuth, setCarregandoAuth] = useState<boolean>(false);
   const [carregandoSync, setCarregandoSync] = useState<boolean>(false);
@@ -100,10 +104,29 @@ export const DataSyncView: React.FC<DataSyncViewProps> = ({
   const [mostrarConfigAvancada, setMostrarConfigAvancada] = useState<boolean>(false);
   const [customClientId, setCustomClientId] = useState<string>(config.googleClientId || '');
 
-  // Detectar token inicial
+  // Detectar usuário e token inicial
   useEffect(() => {
     const token = getStoredAccessToken();
-    setTemToken(!!token);
+    if (token) setTemToken(true);
+
+    const unsubscribe = initAuth(
+      (user, tok) => {
+        setUsuarioGoogle(user);
+        if (tok) setTemToken(true);
+      },
+      () => {
+        // Apenas limpa se não houver token em cache/sessão
+        const curr = getStoredAccessToken();
+        if (!curr) {
+          setUsuarioGoogle(null);
+          setTemToken(false);
+        }
+      }
+    );
+
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, []);
 
   const mostrarMensagem = (msg: string) => {
@@ -121,13 +144,24 @@ export const DataSyncView: React.FC<DataSyncViewProps> = ({
   const effectiveClientId =
     config.googleClientId ||
     (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID ||
-    '90018411759-client.apps.googleusercontent.com';
+    '214510564913-h3nsieg77e35cn5at65apqhapbvg65uc.apps.googleusercontent.com';
 
-  // Autenticar com o Google
+  // Autenticar com o Google via OAuth Oficial
   const handleConectarGoogle = async () => {
     setCarregandoAuth(true);
     try {
-      const token = await requestGoogleAccessToken(effectiveClientId);
+      let token: string;
+      try {
+        const authResult = await googleSignIn();
+        setUsuarioGoogle(authResult.user);
+        token = authResult.accessToken;
+      } catch (authErr: any) {
+        if (authErr?.code === 'auth/popup-closed-by-user') {
+          return;
+        }
+        token = await requestGoogleAccessToken(effectiveClientId);
+      }
+
       setTemToken(!!token);
       mostrarMensagem('Conectado à Conta Google com sucesso!');
 
@@ -147,8 +181,14 @@ export const DataSyncView: React.FC<DataSyncViewProps> = ({
     }
   };
 
-  const handleDesconectarGoogle = () => {
+  const handleDesconectarGoogle = async () => {
+    try {
+      await logout();
+    } catch {
+      // Ignore
+    }
     setStoredAccessToken(null);
+    setUsuarioGoogle(null);
     setTemToken(false);
     mostrarMensagem('Desconectado do Google.');
   };
@@ -316,6 +356,30 @@ export const DataSyncView: React.FC<DataSyncViewProps> = ({
     }
   };
 
+  const handleLimparDadosTeste = () => {
+    if (window.confirm('Tem certeza de que deseja apagar todos os dados de treino, séries, pesos e sono de teste? A lista de exercícios cadastrados será preservada.')) {
+      limparDadosTeste(true);
+      onReloadAll();
+      mostrarMensagem('Dados de teste apagados com sucesso! Histórico limpo.');
+    }
+  };
+
+  const handleLimparTudo = () => {
+    if (window.confirm('ATENÇÃO: Deseja apagar TUDO (incluindo todos os exercícios cadastrados)? O app voltará ao estado virgem.')) {
+      limparDadosTeste(false);
+      onReloadAll();
+      mostrarMensagem('Reset de fábrica concluído! Todos os registros foram apagados.');
+    }
+  };
+
+  const handleRestaurarExemplo = () => {
+    if (window.confirm('Deseja recarregar os dados de exemplo pré-definidos para demonstração?')) {
+      restaurarDadosExemplo();
+      onReloadAll();
+      mostrarMensagem('Dados de exemplo recarregados!');
+    }
+  };
+
   const handleCriarExercicio = (e: React.FormEvent) => {
     e.preventDefault();
     if (!novoExNome.trim()) return;
@@ -447,25 +511,70 @@ export const DataSyncView: React.FC<DataSyncViewProps> = ({
         {!temToken ? (
           <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <p className="font-bold text-emerald-950 dark:text-emerald-300">Conecte sua Conta Google</p>
-              <p className="text-emerald-900 dark:text-emerald-400 mt-0.5">
-                Autorize o acesso para ler e atualizar suas planilhas de treino sem sair do app.
+              <p className="font-bold text-emerald-950 dark:text-emerald-300 text-sm">Conecte sua Conta Google</p>
+              <p className="text-stone-600 dark:text-emerald-400 mt-0.5">
+                Conecte via OAuth oficial para criar, ler e atualizar suas planilhas com segurança e sincronização automática.
               </p>
             </div>
             <button
               onClick={handleConectarGoogle}
               disabled={carregandoAuth}
-              className="py-2.5 px-4 rounded-xl bg-emerald-800 dark:bg-emerald-700 hover:bg-emerald-900 dark:hover:bg-emerald-600 text-white font-bold text-xs shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+              className="py-2.5 px-4 rounded-xl bg-white dark:bg-[#151D18] hover:bg-stone-50 dark:hover:bg-[#202C24] text-stone-800 dark:text-white font-semibold text-xs border border-stone-300 dark:border-[#2D3D34] shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap flex items-center gap-2.5"
             >
-              {carregandoAuth ? 'Conectando...' : 'Conectar com Google'}
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.14-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                />
+              </svg>
+              <span>{carregandoAuth ? 'Conectando...' : 'Entrar com Google'}</span>
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-stone-50 dark:bg-[#151D18] border border-stone-200 dark:border-[#2D3D34] text-xs">
-            <span className="text-stone-600 dark:text-stone-300">Sua sessão Google está ativa e pronta para sincronizar.</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-2xl bg-stone-50 dark:bg-[#151D18] border border-stone-200 dark:border-[#2D3D34] gap-2.5 text-xs">
+            <div className="flex items-center gap-3">
+              {usuarioGoogle?.photoURL ? (
+                <img
+                  src={usuarioGoogle.photoURL}
+                  alt={usuarioGoogle.displayName || 'Google User'}
+                  className="w-9 h-9 rounded-full border border-stone-300 dark:border-[#2D3D34] object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-emerald-800 text-white font-bold flex items-center justify-center text-xs">
+                  {usuarioGoogle?.displayName
+                    ? usuarioGoogle.displayName.charAt(0).toUpperCase()
+                    : 'G'}
+                </div>
+              )}
+              <div>
+                <div className="font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
+                  <span>{usuarioGoogle?.displayName || 'Conta Google Conectada'}</span>
+                  <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/40">
+                    OAuth Ativo
+                  </span>
+                </div>
+                <div className="text-stone-500 dark:text-stone-400 text-[11px]">
+                  {usuarioGoogle?.email || 'Acesso liberado para Google Sheets'}
+                </div>
+              </div>
+            </div>
+
             <button
               onClick={handleDesconectarGoogle}
-              className="text-stone-500 dark:text-stone-400 hover:text-rose-600 font-medium underline cursor-pointer"
+              className="self-end sm:self-auto py-1.5 px-3 rounded-xl hover:bg-stone-200 dark:hover:bg-[#202C24] text-stone-500 hover:text-rose-600 dark:text-stone-400 dark:hover:text-rose-400 font-semibold transition-colors cursor-pointer text-xs"
             >
               Desconectar
             </button>
@@ -633,6 +742,46 @@ export const DataSyncView: React.FC<DataSyncViewProps> = ({
           <Upload className="w-4 h-4 text-stone-600 dark:text-stone-400" />
           <span>Selecionar Arquivo .json</span>
         </button>
+      </div>
+
+      {/* Limpeza de Dados de Teste & Reset */}
+      <div className="bg-white dark:bg-[#1A231E] rounded-3xl border border-rose-200 dark:border-rose-950/60 shadow-xs p-5 space-y-3">
+        <div>
+          <h4 className="font-bold text-sm text-rose-900 dark:text-rose-300 flex items-center gap-2">
+            <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+            <span>Limpar Dados de Teste &amp; Reset</span>
+          </h4>
+          <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+            Apague os registros e simulações de teste para iniciar o acompanhamento com seus próprios dados reais.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+          <button
+            onClick={handleLimparDadosTeste}
+            className="flex-1 py-2.5 px-3 rounded-xl border border-rose-300 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-xs font-bold text-rose-800 dark:text-rose-200 flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+            <span>Apagar Dados de Teste (Zerar Treino, Peso e Sono)</span>
+          </button>
+
+          <button
+            onClick={handleLimparTudo}
+            className="py-2.5 px-3 rounded-xl border border-stone-300 dark:border-[#2D3D34] hover:bg-stone-50 dark:hover:bg-[#232E27] text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            title="Apaga absolutamente tudo, inclusive a lista de exercícios"
+          >
+            <span>Reset de Fábrica</span>
+          </button>
+
+          <button
+            onClick={handleRestaurarExemplo}
+            className="py-2.5 px-3 rounded-xl border border-stone-300 dark:border-[#2D3D34] hover:bg-stone-50 dark:hover:bg-[#232E27] text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            title="Restaura os dados de exemplo pré-configurados"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-stone-400" />
+            <span>Restaurar Exemplo</span>
+          </button>
+        </div>
       </div>
 
       {/* Ajustes Pessoais */}
