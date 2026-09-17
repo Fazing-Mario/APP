@@ -3,8 +3,23 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
+// Registrar Service Worker para permitir instalação do PWA no Chrome
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.log('SW registration note:', err);
+    });
+  });
+} else if ('serviceWorker' in navigator) {
+  // Também registrar em dev para testar critérios de instalação PWA
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>,
 );
+
